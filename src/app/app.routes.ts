@@ -32,7 +32,8 @@ export const routes: Routes = [
         component: FullLayoutComponent,
         children: [
             {
-                loadComponent: () => import('./features/sales-management/sales-management.component').then(m => m.SalesManagementComponent)
+                path: '',
+                loadComponent: () => import('./features/sales-management/sales-management.component').then(m => m.SalesManagementComponent),
             }
         ]
     },

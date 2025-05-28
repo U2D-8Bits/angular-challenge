@@ -1,0 +1,64 @@
+<div *ngIf="userData as user" class="bg-white rounded-lg shadow-md p-6 w-full max-w-4xl mx-auto mt-6">
+  
+  <div class="flex justify-between items-start mb-4">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800">{{ user.name.first }} {{ user.name.last }}</h2>
+      <span class="text-sm text-gray-500">ID: {{ user.id }}</span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-6 items-start">
+    
+    <div class="space-y-2">
+      <div>
+        <span class="font-semibold text-gray-700">Email:</span>
+        <span class="text-gray-800">{{ user.email }}</span>
+      </div>
+      <div>
+        <span class="font-semibold text-gray-700">Username:</span>
+        <span class="text-gray-800">{{ user.username }}</span>
+      </div>
+      <div>
+        <span class="font-semibold text-gray-700">Rol:</span>
+        <span class="text-gray-800 capitalize">{{ user.role }}</span>
+      </div>
+      <div>
+        <span class="font-semibold text-gray-700">Género:</span>
+        <span class="text-gray-800 capitalize">{{ user.gender }}</span>
+      </div>
+    </div>
+
+    
+    <div class="space-y-2">
+      <div>
+        <span class="font-semibold text-gray-700">Ciudad:</span>
+        <span class="text-gray-800">{{ user.location.city }}</span>
+      </div>
+      <div>
+        <span class="font-semibold text-gray-700">Estado:</span>
+        <span class="text-gray-800">{{ user.location.state }}</span>
+      </div>
+      <div>
+        <span class="font-semibold text-gray-700">País:</span>
+        <span class="text-gray-800">{{ user.location.country }}</span>
+      </div>
+      <div>
+        <span class="font-semibold text-gray-700">Código Postal:</span>
+        <span class="text-gray-800">{{ user.location.postcode }}</span>
+      </div>
+      <div>
+        <span class="font-semibold text-gray-700">Teléfono:</span>
+        <span class="text-gray-800">{{ user.phone }}</span>
+      </div>
+      <div>
+        <span class="font-semibold text-gray-700">Celular:</span>
+        <span class="text-gray-800">{{ user.cell }}</span>
+      </div>
+    </div>
+
+    
+    <div class="flex justify-center items-start">
+      <img [src]="user.picture.large" alt="Foto de usuario" class="w-32 h-32 rounded-full object-cover border-4 border-gray-200 shadow" />
+    </div>
+  </div>
+</div>

@@ -1,3 +1,22 @@
-<p>
-  custom-input works!
-</p>
+<div class="relative">
+  <input
+    [type]="inputType"
+    [placeholder]="placeholder"
+    [value]="value"
+    (input)="handleInput($event)"
+    (blur)="onTouched()"
+    [disabled]="disabled"
+    class="w-full h-11 px-3 border border-[#dddfe2] rounded-md text-base bg-[#f5f6f7] focus:outline-none focus:border-[#1877f2] focus:bg-white transition-colors"
+  />
+  <!-- Botón para mostrar/ocultar contraseña -->
+  <button *ngIf="type === 'password'" type="button"
+    (click)="togglePasswordVisibility()"
+    class="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-base text-[#65676b]"
+    tabindex="-1">
+    <span class="material-symbols-outlined">
+      {{ showPassword ? 'visibility' : 'visibility_off' }}
+    </span>
+  </button>
+</div>
+<!-- Mensaje de error -->
+<div *ngIf="error" class="text-[#e74c3c] text-sm mt-1">{{ error }}</div>

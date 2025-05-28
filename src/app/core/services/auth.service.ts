@@ -1,20 +1,23 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, of, map, catchError } from 'rxjs';
-import { isPlatformBrowser } from '@angular/common';
 
 import { environment } from '../../environments/environment';
 import { UserModel, RoleModel } from '../../shared/models';
+
+import { StorageService } from './storage.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private readonly apiURL: string = environment.apiUrl;
+  private storage = inject(StorageService)
+
   private readonly USER_KEY = 'auth_user';
-  private platformId = inject(PLATFORM_ID);
+  private readonly apiURL: string = environment.apiUrl;
+
 
   // Método para iniciar sesión
   login(username: string, password: string): Observable<UserModel | null> {
@@ -29,31 +32,23 @@ export class AuthService {
   // Método para obtener los roles del usuario
   getRoles(): Observable<RoleModel[]> {
     const url = `${this.apiURL}/roles`;
-
     return this.http.get<RoleModel[]>(url);
   }
 
   // Método para guardar el usuario autenticado en el localStorage
   setSessionUser(user: UserModel) {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-    }
+    this.storage.setItem(this.USER_KEY, JSON.stringify(user));
   }
 
   // Método para obtener el usuario autenticado desde el localStorage
   getSessionUser(): UserModel | null {
-    if (isPlatformBrowser(this.platformId)) {
-      const user = localStorage.getItem(this.USER_KEY);
-      return user ? JSON.parse(user) : null;
-    }
-    return null;
+    const user = this.storage.getItem(this.USER_KEY);
+    return user ? JSON.parse(user) : null;
   }
 
   // Método para cerrar sesión
   logout(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem(this.USER_KEY);
-    }
+    this.storage.removeItem(this.USER_KEY);
   }
 
   // Método para redireccionar al usuario según su rol

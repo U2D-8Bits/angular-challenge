@@ -21,7 +21,7 @@ export class AuthService {
 
   // Método para iniciar sesión
   login(username: string, password: string): Observable<UserModel | null> {
-    const url = `${this.apiURL}/users/username=${username}&password=${password}`;
+    const url = `${this.apiURL}/users?username=${username}&password=${password}`;
 
     return this.http.get<UserModel[]>(url).pipe(
       map((users) => (users.length > 0 ? users[0] : null)),

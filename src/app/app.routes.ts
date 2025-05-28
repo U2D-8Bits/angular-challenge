@@ -22,6 +22,7 @@ export const routes: Routes = [
         title: 'Analistas',
         component: FullLayoutComponent,
         canActivate: [authGuard, roleGuard],
+        data: {roles: ['analyst']},
         children: [
             {
                 path: '',
@@ -34,6 +35,7 @@ export const routes: Routes = [
         title: 'Gestión de ventas',
         component: FullLayoutComponent,
         canActivate: [authGuard, roleGuard],
+        data: {roles: ['manager']},
         children: [
             {
                 path: '',

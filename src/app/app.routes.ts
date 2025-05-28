@@ -6,7 +6,12 @@ export const routes: Routes = [
     {
         path: 'login',
         component: SimpleLayoutComponent,
-        loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
+        children: [
+            {
+                path: '',
+                loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
+            }
+        ]
     },
     {
         path: '',

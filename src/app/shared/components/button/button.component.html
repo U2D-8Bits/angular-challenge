@@ -1,3 +1,21 @@
-<p>
-  button works!
-</p>
+<button
+  [type]="type"
+  [disabled]="disabled || loading"
+  class="w-full h-11 rounded-md text-base font-semibold transition-colors"
+  [ngStyle]="{
+    'background-color': disabled || loading ? color : color,
+    'color': textColor,
+    'opacity': (disabled || loading) ? 0.6 : 1
+  }"
+  (mouseenter)="hovering = true"
+  (mouseleave)="hovering = false"
+  [style.background-color]="hovering && !(disabled || loading) ? hoverColor : color"
+>
+  <ng-container *ngIf="!loading; else loadingTpl">
+    <ng-content></ng-content>
+  </ng-container>
+  <ng-template #loadingTpl>
+    <span class="inline-block align-middle animate-spin border-2 border-white border-t-[#1877f2] rounded-full w-5 h-5 mr-2"></span>
+    {{ loadingText }}
+  </ng-template>
+</button>

@@ -1,13 +1,21 @@
 /* You can add global styles to this file, and also import other style files */
 @import "tailwindcss";
 
-body, html {
-  min-height: 100vh;
+html, body {
   height: 100%;
-  overflow-y: hidden;
-  box-sizing: border-box;
+}
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+#root, app-root {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
-body {
-  background: transparent;
+main {
+  min-height: 0;
 }

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { SimpleLayoutComponent } from './layout/simpleLayout/simpleLayout.component';
 import { FullLayoutComponent } from './layout/fullLayout/fullLayout.component';
+import { authGuard, roleGuard } from './core/guards';
 
 export const routes: Routes = [
 
@@ -8,6 +9,7 @@ export const routes: Routes = [
         path: 'login',
         title: 'Inicio de sesión',
         component: SimpleLayoutComponent,
+        canActivate: [authGuard],
         children: [
             {
                 path: '',
@@ -19,6 +21,7 @@ export const routes: Routes = [
         path: 'analysts',
         title: 'Analistas',
         component: FullLayoutComponent,
+        canActivate: [authGuard, roleGuard],
         children: [
             {
                 path: '',
@@ -30,6 +33,7 @@ export const routes: Routes = [
         path: 'sales-management',
         title: 'Gestión de ventas',
         component: FullLayoutComponent,
+        canActivate: [authGuard, roleGuard],
         children: [
             {
                 path: '',

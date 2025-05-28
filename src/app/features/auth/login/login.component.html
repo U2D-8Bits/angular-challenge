@@ -4,18 +4,21 @@
     <p class="text-[#606770] text-base leading-snug">Bienvenido, inicia sesión para continuar</p>
   </div>
   <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
-    <form class="flex flex-col gap-4">
+    <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" class="flex flex-col gap-4">
       <div class="relative">
-        <input type="text" placeholder="Email" class="w-full h-11 px-3 border border-[#dddfe2] rounded-md text-base bg-[#f5f6f7] focus:outline-none focus:border-[#1877f2] focus:bg-white transition-colors" />
+        <app-custom-input [placeholder]="'Nombre de Usuario'" [type]="'text'" formControlName="username"
+          [error]="loginForm.get('username')?.touched && loginForm.get('username')?.invalid ? 'El nombre de usuario es obligatorio' : ''" />
       </div>
       <div class="relative">
-        <input type="password" placeholder="Contraseña" class="w-full h-11 px-3 border border-[#dddfe2] rounded-md text-base bg-[#f5f6f7] focus:outline-none focus:border-[#1877f2] focus:bg-white transition-colors" />
-        <!-- Botón para mostrar/ocultar contraseña -->
-        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-base text-[#65676b]">👁️</button>
+        <app-custom-input [placeholder]="'Contraseña'" [type]="'password'" formControlName="password"
+          [error]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid ? 'La contraseña es obligatoria' : ''" />
       </div>
       <!-- Mensaje de error -->
-      <!-- <div class="text-[#e74c3c] text-sm mt-1">Error message</div> -->
-      <button type="submit" class="w-full h-11 bg-[#1877f2] text-white rounded-md text-base font-semibold transition-colors hover:bg-[#166fe5] disabled:opacity-60 disabled:cursor-not-allowed">Iniciar sesión</button>
+      <app-button type="submit" [loading]="loading" [disabled]="loading" color="#1877f2" hoverColor="#166fe5"
+        textColor="#fff">
+        Iniciar sesión
+      </app-button>
+
     </form>
   </div>
   <div class="text-center mt-6 text-xs text-[#65676b]">

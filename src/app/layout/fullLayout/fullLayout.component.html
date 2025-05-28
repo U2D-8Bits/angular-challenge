@@ -1,13 +1,12 @@
-<div class="min-h-screen bg-[#002349] flex flex-col">
-  <!-- Header -->
-  <app-header/>
+<div class="min-h-screen bg-[#002349] flex flex-col h-full">
+  <!-- Header sticky -->
+  <app-header class="sticky top-0 z-50" />
 
   <!-- Contenido Principal -->
-  <main class="flex-1 w-full max-w-6xl mx-auto py-8 px-4 md:px-8 flex flex-col gap-8">
-    <router-outlet/>
+  <main class="flex-1 overflow-y-auto w-full flex flex-col gap-6 px-0 md:px-0 py-0 h-full">
+    <router-outlet />
   </main>
 
   <!-- Footer -->
   <app-footer/>
-
 </div>

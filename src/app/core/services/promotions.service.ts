@@ -17,13 +17,13 @@ export class PromotionsService {
 
   // Método para obtener la lista de promociones desde el LocalStorage
   getPromotionList(): PromotionItemModel[]{
-    const data = this.storage.getItem(this.PROMO_LIST_KEY);
+    const data = localStorage.getItem('promotion_list');
     return data ? JSON.parse(data) : [];
   }
 
   // Método para guardar la lista de promociones
-  savePromotionList(list: PromotionItemModel[]): void {
-    this.storage.setItem(this.PROMO_LIST_KEY, JSON.stringify(list));
+  savePromotionList(list: PromotionItemModel[]) {
+    localStorage.setItem('promotion_list', JSON.stringify(list));
   }
 
   // Método para Eliminar la lista de promociones

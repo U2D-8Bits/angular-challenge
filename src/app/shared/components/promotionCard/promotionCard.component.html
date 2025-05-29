@@ -34,15 +34,13 @@
               No hay promociones agregadas. Usa el botón "Añadir Productos" para comenzar.
             </td>
           </tr>
-          <ng-container formArrayName="promotions">
-            <tr *ngFor="let group of promotionGroups; let i = index">
-              <td colspan="5" class="p-0">
-                <app-promotion-row [group]="group" [products]="products" [productOptions]="getProductOptions(i)"
-                  [disableRemove]="promotions.length === 1" (remove)="removePromotion(i)">
-                </app-promotion-row>
-              </td>
-            </tr>
-          </ng-container>
+          <tr *ngFor="let group of promotionGroups; let i = index">
+            <td colspan="5" class="p-0">
+              <app-promotion-row [group]="group" [products]="products" [productOptions]="getProductOptions(i)"
+                [disableRemove]="promotions.length === 1" (remove)="removePromotion(i)">
+              </app-promotion-row>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>

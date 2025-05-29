@@ -14,16 +14,15 @@ import { ProductsService } from '../../../core/services/products.service';
 import { PromotionsService } from '../../../core/services/promotions.service';
 
 import { ProductModel } from '../../models';
-import { PromotionItemModel } from '../../models';
 
 import { ButtonComponent } from '../button/button.component';
-import { CustomInputComponent } from '../custom-input/custom-input.component';
+import { PromotionRowComponent } from '../promotion-row/promotion-row.component';
 
 @Component({
   standalone: true,
   imports: [
     ButtonComponent,
-    CustomInputComponent,
+    PromotionRowComponent,
     CommonModule,
     ReactiveFormsModule,
   ],
@@ -35,7 +34,6 @@ export class PromotionCardComponent implements OnInit {
   products: ProductModel[] = [];
   isManager = false;
   form: FormGroup;
-  productOptions = [{ value: '', label: 'Selecciona un producto' }];
 
   constructor(
     private authService: AuthService,
@@ -53,9 +51,6 @@ export class PromotionCardComponent implements OnInit {
     this.setRole();
     if (!this.isManager) {
       this.loadProducts();
-      if (this.promotions.length === 0) {
-        this.addPromotionEmpty();
-      }
     }
   }
 
@@ -68,16 +63,16 @@ export class PromotionCardComponent implements OnInit {
     return this.form.get('promotions') as FormArray;
   }
 
+  get promotionGroups(): FormGroup[] {
+    return this.promotions.controls as FormGroup[];
+  }
+
   private loadProducts() {
     this.productService.getAllProducts().subscribe({
       next: (products) => {
         this.products = products;
-        this.productOptions = [
-          { value: '', label: 'Selecciona un producto' },
-          ...products.map((p) => ({ value: p.id.toString(), label: p.name })),
-        ];
         if (this.promotions.length === 0 && products.length > 0) {
-          this.addPromotion(products[0]);
+          this.addPromotion();
         }
       },
       error: (error) => console.log('Error => ', error),
@@ -98,108 +93,26 @@ export class PromotionCardComponent implements OnInit {
     ];
   }
 
-  private createPromotionGroupEmpty(): FormGroup {
-    const group = this.fb.group({
+  private createPromotionGroup(): FormGroup {
+    return this.fb.group({
       productId: [null, Validators.required],
       productName: [''],
-      listPrice: [null],
-      quantity: [null, [Validators.required]],
-      promotionPrice: [null, [Validators.required]],
-      minPromotionQuantity: [null],
-      maxPromotionQuantity: [null],
-      minPromotionPrice: [null],
+      listPrice: [null as number | null],
+      quantity: [null as number | null, [Validators.required]],
+      promotionPrice: [null as number | null, [Validators.required]],
+      minPromotionQuantity: [null as number | null],
+      maxPromotionQuantity: [null as number | null],
+      minPromotionPrice: [null as number | null],
     });
-    this.handleProductSelection(group);
-    return group;
   }
 
-private handleProductSelection(group: FormGroup) {
-  group.get('productId')?.valueChanges.subscribe((productId) => {
-    const id = productId !== null ? Number(productId) : null;
-    const selected = this.products.find((p) => p.id === id);
-    if (selected) {
-      group.patchValue(
-        {
-          productName: selected.name,
-          listPrice: selected.listPrice,
-          minPromotionQuantity: selected.minPromotionQuantity,
-          maxPromotionQuantity: selected.maxPromotionQuantity,
-          minPromotionPrice: selected.minPromotionPrice,
-          quantity: selected.minPromotionQuantity,
-          promotionPrice: selected.minPromotionPrice,
-        },
-        { emitEvent: false }
-      );
-      group.get('quantity')?.setValidators([
-        Validators.required,
-        Validators.min(selected.minPromotionQuantity),
-        Validators.max(selected.maxPromotionQuantity),
-      ]);
-      group.get('quantity')?.updateValueAndValidity();
-      group.get('promotionPrice')?.setValidators([
-        Validators.required,
-        Validators.min(selected.minPromotionPrice),
-        Validators.max(selected.listPrice - 0.01),
-      ]);
-      group.get('promotionPrice')?.updateValueAndValidity();
-    } else {
-      group.patchValue(
-        {
-          productName: '',
-          listPrice: null,
-          minPromotionQuantity: null,
-          maxPromotionQuantity: null,
-          minPromotionPrice: null,
-          quantity: null,
-          promotionPrice: null,
-        },
-        { emitEvent: false }
-      );
-      group.get('quantity')?.clearValidators();
-      group.get('quantity')?.updateValueAndValidity();
-      group.get('promotionPrice')?.clearValidators();
-      group.get('promotionPrice')?.updateValueAndValidity();
+  addPromotion() {
+    if (!this.products || this.products.length === 0) {
+      return;
     }
-  });
-}
-
-  addPromotionEmpty() {
-    this.promotions.push(this.createPromotionGroupEmpty());
+    const group = this.createPromotionGroup();
+    this.promotions.push(group);
     this.cdr.detectChanges();
-    console.log('Promociones actuales:', this.promotions.getRawValue());
-  }
-
-  private createPromotionGroup(product?: ProductModel): FormGroup {
-    return this.fb.group({
-      productId: [product?.id ?? null, Validators.required],
-      productName: [product?.name || ''],
-      listPrice: [product?.listPrice ?? null],
-      quantity: [
-        product?.minPromotionQuantity ?? null,
-        [
-          Validators.required,
-          Validators.min(product?.minPromotionQuantity ?? 1),
-          Validators.max(product?.maxPromotionQuantity ?? 999),
-        ],
-      ],
-      promotionPrice: [
-        product?.minPromotionPrice ?? null,
-        [
-          Validators.required,
-          Validators.min(product?.minPromotionPrice ?? 0.01),
-          Validators.max(product?.listPrice ? product.listPrice - 0.01 : 99999),
-        ],
-      ],
-      minPromotionQuantity: [product?.minPromotionQuantity ?? null],
-      maxPromotionQuantity: [product?.maxPromotionQuantity ?? null],
-      minPromotionPrice: [product?.minPromotionPrice ?? null],
-    });
-  }
-
-  addPromotion(product?: ProductModel) {
-    this.promotions.push(this.createPromotionGroup(product));
-    this.cdr.detectChanges();
-    console.log('Promociones actuales:', this.promotions.getRawValue());
   }
 
   submitPromotions() {

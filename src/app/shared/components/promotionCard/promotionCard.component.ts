@@ -27,8 +27,18 @@ import Swal from 'sweetalert2';
 export class PromotionCardComponent implements OnInit {
   products: ProductModel[] = [];
   isManager = false;
+  isAnalyst = false;
   form: FormGroup;
-  estadoLista: 'EDICION' | 'APROBACION' = 'EDICION';
+  estadoLista: 'EDICION' | 'APROBACION' | 'APROBADO' = 'EDICION';
+  promotionListResumen: any[] = [];
+  // Para manager
+  showManagerTable = false;
+  // Para manager: estados de cada promo
+  managerPromoStatus: Array<'pendiente' | 'aprobada' | 'rechazada'> = [];
+
+  // Para controlar productos aprobados y rechazados al volver a edición
+  productosAprobados: number[] = [];
+  productosRechazados: any[] = [];
 
   constructor(
     private authService: AuthService,
@@ -44,15 +54,47 @@ export class PromotionCardComponent implements OnInit {
 
   ngOnInit() {
     this.setRole();
-    if (!this.isManager) {
+    if (this.isManager) {
+      const status = this.promotionsService.getPromotionStatus();
+      this.estadoLista = status;
+      this.promotionListResumen = this.promotionsService.getPromotionList();
+      this.showManagerTable = status === 'APROBACION' && this.promotionListResumen.length > 0;
+      this.managerPromoStatus = this.promotionListResumen.map((p: any) => p.managerStatus || 'pendiente');
+    } else {
       this.loadProducts();
       this.promotionsFormArray.valueChanges.subscribe(() => {
         this.handleFormArrayChanges();
       });
-      // Al iniciar, verificar si la lista ya está en APROBACION
       const status = this.promotionsService.getPromotionStatus();
-      if (status === 'APROBACION') {
-        this.estadoLista = 'APROBACION';
+      const lista = this.promotionsService.getPromotionList();
+      if (lista && lista.length > 0) {
+        this.productosAprobados = lista.filter(p => p.managerStatus === 'aprobada').map(p => p.productId);
+        this.productosRechazados = lista.filter(p => p.managerStatus === 'rechazada');
+        const aprobados = lista.filter(p => p.managerStatus === 'aprobada');
+        const formArray = this.promotionsFormArray;
+        while (formArray.length > 0) {
+          formArray.removeAt(0);
+        }
+        // Primero los rechazados (editables)
+        this.productosRechazados.forEach(promo => {
+          const group = this.createPromotionGroup(promo);
+          formArray.push(group);
+        });
+        // Luego los aprobados (no editables)
+        aprobados.forEach(promo => {
+          const group = this.createPromotionGroup(promo);
+          formArray.push(group);
+        });
+        this.estadoLista = status;
+        this.cdr.detectChanges();
+      } else {
+        // Si no hay lista previa, flujo normal
+        if (status === 'APROBACION') {
+          this.estadoLista = 'APROBACION';
+          this.cargarResumenPromos();
+        } else {
+          this.estadoLista = 'EDICION';
+        }
       }
     }
   }
@@ -129,6 +171,7 @@ export class PromotionCardComponent implements OnInit {
   private setRole() {
     const user = this.authService.getSessionUser();
     this.isManager = user?.role === 'manager';
+    this.isAnalyst = user?.role === 'analyst';
   }
 
   get promotions(): FormArray {
@@ -151,28 +194,41 @@ export class PromotionCardComponent implements OnInit {
     });
   }
 
-  getProductOptions(index: number): { value: number | null; label: string }[] {
-    const selectedIds = this.promotions.controls
-      .map((ctrl, i) => (i !== index ? Number(ctrl.get('productId')?.value) : null))
-      .filter((id) => id !== null);
-    return [
-      { value: null, label: 'Selecciona un producto' },
-      ...this.products
-        .filter((p) => !selectedIds.includes(p.id))
-        .map((p) => ({ value: p.id, label: p.name })),
-    ];
+  // Devuelve true si el item está aprobado por el manager
+  isApproved(promo: any): boolean {
+    return promo.managerStatus === 'aprobada';
   }
 
-  private createPromotionGroup(): FormGroup {
+  // Devuelve true si el item está bloqueado (aprobado y no editable)
+  isBlocked(promo: any): boolean {
+    return this.isApproved(promo);
+  }
+
+  // Opciones de productos para el select, excluyendo los que ya están en la tabla (FormArray), excepto el actual
+  getProductOptions(index: number) {
+    const currentId = this.promotionsFormArray.at(index).get('productId')?.value;
+    // IDs de productos ya seleccionados en la tabla (FormArray)
+    const idsSeleccionados = this.promotionsFormArray.controls
+      .map((ctrl, i) => i !== index ? ctrl.get('productId')?.value : null)
+      .filter(id => id !== null);
+    return this.products
+      .filter(product => !idsSeleccionados.includes(product.id) || product.id === currentId)
+      .map(product => ({ value: product.id, label: product.name }));
+  }
+
+  private createPromotionGroup(promo?: any): FormGroup {
+    // Si promo es aprobado, los controles van disabled
+    const isAprobada = promo?.managerStatus === 'aprobada';
     return this.fb.group({
-      productId: [null, Validators.required],
-      productName: [''],
-      listPrice: [null as number | null],
-      quantity: [null as number | null, [Validators.required]],
-      promotionPrice: [null as number | null, [Validators.required]],
-      minPromotionQuantity: [null as number | null],
-      maxPromotionQuantity: [null as number | null],
-      minPromotionPrice: [null as number | null],
+      productId: [{ value: promo?.productId ?? null, disabled: isAprobada }, Validators.required],
+      productName: [{ value: promo?.productName ?? '', disabled: isAprobada }],
+      listPrice: [{ value: promo?.listPrice ?? null, disabled: isAprobada }],
+      quantity: [{ value: promo?.quantity ?? null, disabled: isAprobada }, [Validators.required]],
+      promotionPrice: [{ value: promo?.promotionPrice ?? null, disabled: isAprobada }, [Validators.required]],
+      minPromotionQuantity: [{ value: promo?.minPromotionQuantity ?? null, disabled: isAprobada }],
+      maxPromotionQuantity: [{ value: promo?.maxPromotionQuantity ?? null, disabled: isAprobada }],
+      minPromotionPrice: [{ value: promo?.minPromotionPrice ?? null, disabled: isAprobada }],
+      managerStatus: [promo?.managerStatus ?? null],
     });
   }
 
@@ -188,22 +244,18 @@ export class PromotionCardComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  // Al enviar la lista, cada item debe ir con managerStatus: 'pendiente'
   submitPromotions() {
     if (this.form.invalid || this.promotions.length === 0) return;
     const list = this.promotions.getRawValue().map((promo: any) => ({
-      productId: +promo.productId,
-      productName: promo.productName,
-      listPrice: promo.listPrice,
-      quantity: promo.quantity,
-      promotionPrice: promo.promotionPrice,
-      minPromotionQuantity: promo.minPromotionQuantity,
-      maxPromotionQuantity: promo.maxPromotionQuantity,
-      minPromotionPrice: promo.minPromotionPrice,
+      ...promo,
+      managerStatus: 'pendiente'
     }));
     this.promotionsService.savePromotionList(list);
     this.promotionsService.setPromotionStatus('APROBACION');
     this.form.disable();
     this.estadoLista = 'APROBACION';
+    this.cargarResumenPromos();
     Swal.fire({
       icon: 'success',
       title: '¡Lista enviada!',
@@ -213,6 +265,10 @@ export class PromotionCardComponent implements OnInit {
     });
   }
 
+  cargarResumenPromos() {
+    this.promotionListResumen = this.promotionsService.getPromotionList();
+  }
+
   removePromotion(index: number) {
     this.promotions.removeAt(index);
     this.cdr.detectChanges();
@@ -220,5 +276,66 @@ export class PromotionCardComponent implements OnInit {
 
   get disableRemove(): boolean {
     return this.promotions.length <= 1;
+  }
+
+  aprobarPromo(idx: number) {
+    this.managerPromoStatus[idx] = 'aprobada';
+    this.promotionListResumen[idx].managerStatus = 'aprobada';
+    this.promotionsService.savePromotionList(this.promotionListResumen);
+  }
+
+  rechazarPromo(idx: number) {
+    this.managerPromoStatus[idx] = 'rechazada';
+    this.promotionListResumen[idx].managerStatus = 'rechazada';
+    this.promotionsService.savePromotionList(this.promotionListResumen);
+  }
+
+  // Métodos para botones globales del gerente
+  get puedeAprobarLista(): boolean {
+    return this.managerPromoStatus.length > 0 && this.managerPromoStatus.every(s => s === 'aprobada');
+  }
+
+  get puedeEnviarAEdicion(): boolean {
+    return this.managerPromoStatus.some(s => s === 'rechazada');
+  }
+
+  aprobarListaPromos() {
+    // Guardar todos los managerStatus como 'aprobada' en localStorage
+    this.promotionListResumen.forEach((promo, idx) => {
+      promo.managerStatus = 'aprobada';
+      this.managerPromoStatus[idx] = 'aprobada';
+    });
+    this.promotionsService.savePromotionList(this.promotionListResumen);
+    this.promotionsService.setPromotionStatus('APROBADO');
+    this.estadoLista = 'APROBADO';
+    this.showManagerTable = false;
+    Swal.fire({
+      icon: 'success',
+      title: '¡Lista aprobada!',
+      text: 'La lista de promociones ha sido aprobada y el proceso ha finalizado.',
+      confirmButtonColor: '#00c951',
+      confirmButtonText: 'OK'
+    });
+    // Limpiar estados locales
+    this.managerPromoStatus = [];
+    this.promotionListResumen = [];
+  }
+
+  enviarAEdicion() {
+    // Guardar los estados actuales en localStorage
+    this.promotionsService.savePromotionList(this.promotionListResumen);
+    this.promotionsService.setPromotionStatus('EDICION');
+    this.estadoLista = 'EDICION';
+    this.showManagerTable = false;
+    Swal.fire({
+      icon: 'info',
+      title: 'Lista enviada a edición',
+      text: 'El analista podrá modificar los ítems rechazados.',
+      confirmButtonColor: '#ffb900',
+      confirmButtonText: 'OK'
+    });
+    // Limpiar estados locales
+    this.managerPromoStatus = [];
+    this.promotionListResumen = [];
   }
 }

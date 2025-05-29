@@ -6,6 +6,7 @@ import {
   FormArray,
   Validators,
   ReactiveFormsModule,
+  FormControl,
 } from '@angular/forms';
 import { ChangeDetectorRef } from '@angular/core';
 
@@ -15,11 +16,12 @@ import { PromotionsService } from '../../../core/services/promotions.service';
 
 import { ProductModel } from '../../models';
 import { ButtonComponent } from '../button/button.component';
+import { CustomInputComponent } from '../custom-input/custom-input.component';
 import Swal from 'sweetalert2';
 
 @Component({
   standalone: true,
-  imports: [ButtonComponent, CommonModule, ReactiveFormsModule],
+  imports: [ButtonComponent, CustomInputComponent, CommonModule, ReactiveFormsModule],
   selector: 'app-promotionCard',
   templateUrl: './promotionCard.component.html',
   styleUrls: ['./promotionCard.component.css'],
@@ -31,14 +33,15 @@ export class PromotionCardComponent implements OnInit {
   form: FormGroup;
   estadoLista: 'EDICION' | 'APROBACION' | 'APROBADO' = 'EDICION';
   promotionListResumen: any[] = [];
-  // Para manager
+
   showManagerTable = false;
-  // Para manager: estados de cada promo
+
   managerPromoStatus: Array<'pendiente' | 'aprobada' | 'rechazada'> = [];
 
-  // Para controlar productos aprobados y rechazados al volver a edición
   productosAprobados: number[] = [];
   productosRechazados: any[] = [];
+
+  todosAprobados = false;
 
   constructor(
     private authService: AuthService,
@@ -67,35 +70,54 @@ export class PromotionCardComponent implements OnInit {
       });
       const status = this.promotionsService.getPromotionStatus();
       const lista = this.promotionsService.getPromotionList();
-      if (lista && lista.length > 0) {
-        this.productosAprobados = lista.filter(p => p.managerStatus === 'aprobada').map(p => p.productId);
-        this.productosRechazados = lista.filter(p => p.managerStatus === 'rechazada');
-        const aprobados = lista.filter(p => p.managerStatus === 'aprobada');
-        const formArray = this.promotionsFormArray;
-        while (formArray.length > 0) {
-          formArray.removeAt(0);
-        }
-        // Primero los rechazados (editables)
-        this.productosRechazados.forEach(promo => {
-          const group = this.createPromotionGroup(promo);
-          formArray.push(group);
-        });
-        // Luego los aprobados (no editables)
-        aprobados.forEach(promo => {
-          const group = this.createPromotionGroup(promo);
-          formArray.push(group);
-        });
-        this.estadoLista = status;
-        this.cdr.detectChanges();
-      } else {
-        // Si no hay lista previa, flujo normal
-        if (status === 'APROBACION') {
-          this.estadoLista = 'APROBACION';
-          this.cargarResumenPromos();
+      this.productService.getAllProducts().subscribe((allProducts) => {
+        if (lista && lista.length > 0) {
+          const allApproved = allProducts.every(prod => {
+            const promo = lista.find(p => p.productId === prod.id);
+            return promo && promo.managerStatus === 'aprobada';
+          });
+          const faltanProductos = allProducts.some(prod => !lista.find(p => p.productId === prod.id));
+          if (allApproved && allProducts.length > 0 && !faltanProductos) {
+            this.todosAprobados = true;
+            this.productosAprobados = lista.map(p => p.productId);
+            this.productosRechazados = [];
+            this.estadoLista = 'APROBADO';
+            this.cdr.detectChanges();
+            return;
+          } else {
+            if (status === 'APROBADO' && faltanProductos) {
+              this.promotionsService.setPromotionStatus('EDICION');
+              this.estadoLista = 'EDICION';
+            } else {
+              this.estadoLista = status;
+            }
+            this.todosAprobados = false;
+            this.productosAprobados = lista.filter(p => p.managerStatus === 'aprobada').map(p => p.productId);
+            this.productosRechazados = lista.filter(p => p.managerStatus === 'rechazada');
+            const aprobados = lista.filter(p => p.managerStatus === 'aprobada');
+            const formArray = this.promotionsFormArray;
+            while (formArray.length > 0) {
+              formArray.removeAt(0);
+            }
+            this.productosRechazados.forEach(promo => {
+              const group = this.createPromotionGroup(promo);
+              formArray.push(group);
+            });
+            aprobados.forEach(promo => {
+              const group = this.createPromotionGroup(promo);
+              formArray.push(group);
+            });
+            this.cdr.detectChanges();
+          }
         } else {
-          this.estadoLista = 'EDICION';
+          if (status === 'APROBACION') {
+            this.estadoLista = 'APROBACION';
+            this.cargarResumenPromos();
+          } else {
+            this.estadoLista = 'EDICION';
+          }
         }
-      }
+      });
     }
   }
 
@@ -194,20 +216,16 @@ export class PromotionCardComponent implements OnInit {
     });
   }
 
-  // Devuelve true si el item está aprobado por el manager
   isApproved(promo: any): boolean {
     return promo.managerStatus === 'aprobada';
   }
 
-  // Devuelve true si el item está bloqueado (aprobado y no editable)
   isBlocked(promo: any): boolean {
     return this.isApproved(promo);
   }
 
-  // Opciones de productos para el select, excluyendo los que ya están en la tabla (FormArray), excepto el actual
   getProductOptions(index: number) {
     const currentId = this.promotionsFormArray.at(index).get('productId')?.value;
-    // IDs de productos ya seleccionados en la tabla (FormArray)
     const idsSeleccionados = this.promotionsFormArray.controls
       .map((ctrl, i) => i !== index ? ctrl.get('productId')?.value : null)
       .filter(id => id !== null);
@@ -217,12 +235,11 @@ export class PromotionCardComponent implements OnInit {
   }
 
   private createPromotionGroup(promo?: any): FormGroup {
-    // Si promo es aprobado, los controles van disabled
     const isAprobada = promo?.managerStatus === 'aprobada';
     return this.fb.group({
       productId: [{ value: promo?.productId ?? null, disabled: isAprobada }, Validators.required],
       productName: [{ value: promo?.productName ?? '', disabled: isAprobada }],
-      listPrice: [{ value: promo?.listPrice ?? null, disabled: isAprobada }],
+      listPrice: [{ value: promo?.listPrice ?? null, disabled: isAprobada || !isAprobada }],
       quantity: [{ value: promo?.quantity ?? null, disabled: isAprobada }, [Validators.required]],
       promotionPrice: [{ value: promo?.promotionPrice ?? null, disabled: isAprobada }, [Validators.required]],
       minPromotionQuantity: [{ value: promo?.minPromotionQuantity ?? null, disabled: isAprobada }],
@@ -230,6 +247,11 @@ export class PromotionCardComponent implements OnInit {
       minPromotionPrice: [{ value: promo?.minPromotionPrice ?? null, disabled: isAprobada }],
       managerStatus: [promo?.managerStatus ?? null],
     });
+  }
+
+  createReadonlyFormControl(value: any) {
+    const ctrl = new FormControl({ value, disabled: true });
+    return ctrl;
   }
 
   addPromotion() {
@@ -244,13 +266,16 @@ export class PromotionCardComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // Al enviar la lista, cada item debe ir con managerStatus: 'pendiente'
   submitPromotions() {
     if (this.form.invalid || this.promotions.length === 0) return;
-    const list = this.promotions.getRawValue().map((promo: any) => ({
-      ...promo,
-      managerStatus: 'pendiente'
-    }));
+    const prevList = this.promotionsService.getPromotionList();
+    const list = this.promotions.getRawValue().map((promo: any) => {
+      const prev = prevList.find((p: any) => p.productId === promo.productId);
+      if (prev && prev.managerStatus === 'aprobada') {
+        return { ...promo, managerStatus: 'aprobada' };
+      }
+      return { ...promo, managerStatus: 'pendiente' };
+    });
     this.promotionsService.savePromotionList(list);
     this.promotionsService.setPromotionStatus('APROBACION');
     this.form.disable();
@@ -279,18 +304,19 @@ export class PromotionCardComponent implements OnInit {
   }
 
   aprobarPromo(idx: number) {
+    if (this.managerPromoStatus[idx] === 'aprobada') return;
     this.managerPromoStatus[idx] = 'aprobada';
     this.promotionListResumen[idx].managerStatus = 'aprobada';
     this.promotionsService.savePromotionList(this.promotionListResumen);
   }
 
   rechazarPromo(idx: number) {
+    if (this.managerPromoStatus[idx] === 'aprobada') return;
     this.managerPromoStatus[idx] = 'rechazada';
     this.promotionListResumen[idx].managerStatus = 'rechazada';
     this.promotionsService.savePromotionList(this.promotionListResumen);
   }
 
-  // Métodos para botones globales del gerente
   get puedeAprobarLista(): boolean {
     return this.managerPromoStatus.length > 0 && this.managerPromoStatus.every(s => s === 'aprobada');
   }
@@ -300,7 +326,6 @@ export class PromotionCardComponent implements OnInit {
   }
 
   aprobarListaPromos() {
-    // Guardar todos los managerStatus como 'aprobada' en localStorage
     this.promotionListResumen.forEach((promo, idx) => {
       promo.managerStatus = 'aprobada';
       this.managerPromoStatus[idx] = 'aprobada';
@@ -316,13 +341,11 @@ export class PromotionCardComponent implements OnInit {
       confirmButtonColor: '#00c951',
       confirmButtonText: 'OK'
     });
-    // Limpiar estados locales
     this.managerPromoStatus = [];
     this.promotionListResumen = [];
   }
 
   enviarAEdicion() {
-    // Guardar los estados actuales en localStorage
     this.promotionsService.savePromotionList(this.promotionListResumen);
     this.promotionsService.setPromotionStatus('EDICION');
     this.estadoLista = 'EDICION';
@@ -334,7 +357,6 @@ export class PromotionCardComponent implements OnInit {
       confirmButtonColor: '#ffb900',
       confirmButtonText: 'OK'
     });
-    // Limpiar estados locales
     this.managerPromoStatus = [];
     this.promotionListResumen = [];
   }

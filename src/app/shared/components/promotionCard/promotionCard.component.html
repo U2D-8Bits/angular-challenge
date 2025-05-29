@@ -30,7 +30,10 @@
       <tbody>
         <tr class="border-b last:border-b-0 text-center align-middle">
           <td class="px-2 sm:px-4 py-2 align-middle">
-            <app-custom-input placeholder="Buscar..." class="w-full mx-auto"></app-custom-input>
+            <app-custom-input 
+            type="select" 
+            [options]="[{value: '', label: 'Selecciona un producto'}]"
+            class="w-full mx-auto"></app-custom-input>
           </td>
           <td class="px-2 sm:px-4 py-2 align-middle">
             <app-custom-input type="number" placeholder="Ej: 15"

@@ -113,60 +113,55 @@ export class PromotionCardComponent implements OnInit {
     return group;
   }
 
-  private handleProductSelection(group: FormGroup) {
-    group.get('productId')?.valueChanges.subscribe((productId) => {
-      console.log('Seleccionado:', productId);
-      const id = productId !== null ? Number(productId) : null;
-      const selected = this.products.find((p) => p.id === id);
-      if (selected) {
-        group.patchValue(
-          {
-            productName: selected.name,
-            listPrice: selected.listPrice,
-            minPromotionQuantity: selected.minPromotionQuantity,
-            maxPromotionQuantity: selected.maxPromotionQuantity,
-            minPromotionPrice: selected.minPromotionPrice,
-            quantity: null,
-            promotionPrice: null,
-          },
-          { emitEvent: false }
-        ); // evita bucles infinitos
-        group
-          .get('quantity')
-          ?.setValidators([
-            Validators.required,
-            Validators.min(selected.minPromotionQuantity),
-            Validators.max(selected.maxPromotionQuantity),
-          ]);
-        group.get('quantity')?.updateValueAndValidity();
-        group
-          .get('promotionPrice')
-          ?.setValidators([
-            Validators.required,
-            Validators.min(selected.minPromotionPrice),
-            Validators.max(selected.listPrice - 0.01),
-          ]);
-        group.get('promotionPrice')?.updateValueAndValidity();
-      } else {
-        group.patchValue(
-          {
-            productName: '',
-            listPrice: null,
-            minPromotionQuantity: null,
-            maxPromotionQuantity: null,
-            minPromotionPrice: null,
-            quantity: null,
-            promotionPrice: null,
-          },
-          { emitEvent: false }
-        );
-        group.get('quantity')?.clearValidators();
-        group.get('quantity')?.updateValueAndValidity();
-        group.get('promotionPrice')?.clearValidators();
-        group.get('promotionPrice')?.updateValueAndValidity();
-      }
-    });
-  }
+private handleProductSelection(group: FormGroup) {
+  group.get('productId')?.valueChanges.subscribe((productId) => {
+    const id = productId !== null ? Number(productId) : null;
+    const selected = this.products.find((p) => p.id === id);
+    if (selected) {
+      group.patchValue(
+        {
+          productName: selected.name,
+          listPrice: selected.listPrice,
+          minPromotionQuantity: selected.minPromotionQuantity,
+          maxPromotionQuantity: selected.maxPromotionQuantity,
+          minPromotionPrice: selected.minPromotionPrice,
+          quantity: selected.minPromotionQuantity,
+          promotionPrice: selected.minPromotionPrice,
+        },
+        { emitEvent: false }
+      );
+      group.get('quantity')?.setValidators([
+        Validators.required,
+        Validators.min(selected.minPromotionQuantity),
+        Validators.max(selected.maxPromotionQuantity),
+      ]);
+      group.get('quantity')?.updateValueAndValidity();
+      group.get('promotionPrice')?.setValidators([
+        Validators.required,
+        Validators.min(selected.minPromotionPrice),
+        Validators.max(selected.listPrice - 0.01),
+      ]);
+      group.get('promotionPrice')?.updateValueAndValidity();
+    } else {
+      group.patchValue(
+        {
+          productName: '',
+          listPrice: null,
+          minPromotionQuantity: null,
+          maxPromotionQuantity: null,
+          minPromotionPrice: null,
+          quantity: null,
+          promotionPrice: null,
+        },
+        { emitEvent: false }
+      );
+      group.get('quantity')?.clearValidators();
+      group.get('quantity')?.updateValueAndValidity();
+      group.get('promotionPrice')?.clearValidators();
+      group.get('promotionPrice')?.updateValueAndValidity();
+    }
+  });
+}
 
   addPromotionEmpty() {
     this.promotions.push(this.createPromotionGroupEmpty());

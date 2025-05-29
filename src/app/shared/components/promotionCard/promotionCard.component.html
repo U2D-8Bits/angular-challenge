@@ -1,67 +1,61 @@
-<div class="bg-white rounded-lg shadow-md p-6">
+<div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
   <!-- Header del componente -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-    <!-- Titulo descriptivo del componente -->
-    <h2 class="text-2xl sm:text-3xl font-semibold text-gray-700">
+    <h2 class="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-700">
       Tabla de promociones de productos
     </h2>
-
-
-    <!-- Boton para añadir un nuevo producto -->
-    <app-button class="w-full sm:w-56 " color="#ffb900" hoverColor="#fe9a00">
+    <app-button class="w-full sm:w-56" color="#ffb900" hoverColor="#fe9a00">
       <span class="material-symbols-outlined align-middle mr-1">
         add_circle
       </span>
       Añadir Productos
     </app-button>
-
   </div>
 
-  <!-- Divisor visual -->
   <hr class="my-4 border-gray-200" />
-  
 
   <!-- Contenedor de la Tabla -->
   <div class="overflow-x-auto mt-6">
-    <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+    <table class="min-w-full bg-white border border-gray-200 rounded-lg text-xs sm:text-sm md:text-base">
       <thead>
-        <tr class="bg-gray-100 text-gray-700 text-sm">
-          <th class="px-4 py-3 text-left font-semibold">Nombre del producto</th>
-          <th class="px-4 py-3 text-center font-semibold">Cantidad en unidades</th>
-          <th class="px-4 py-3 text-center font-semibold">Precio lista</th>
-          <th class="px-4 py-3 text-center font-semibold">Precio promoción</th>
-          <th class="px-4 py-3 text-center font-semibold" *ngIf="isManager">Acciones</th>
+        <tr class="bg-gray-100 text-gray-700">
+          <th class="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold whitespace-nowrap">Nombre del producto</th>
+          <th class="px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold whitespace-nowrap">Cantidad en unidades</th>
+          <th class="px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold whitespace-nowrap">Precio lista</th>
+          <th class="px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold whitespace-nowrap">Precio promoción</th>
+          <th class="px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold whitespace-nowrap" *ngIf="isManager">Acciones
+          </th>
         </tr>
       </thead>
       <tbody>
         <tr class="border-b last:border-b-0 text-center align-middle">
-          <td class="px-4 py-2 align-middle">
+          <td class="px-2 sm:px-4 py-2 align-middle">
             <app-custom-input placeholder="Buscar..." class="w-full mx-auto"></app-custom-input>
           </td>
-          <td class="px-4 py-2 align-middle">
-            <app-custom-input type="number" placeholder="Ej: 15" class="w-20 text-center mx-auto"></app-custom-input>
+          <td class="px-2 sm:px-4 py-2 align-middle">
+            <app-custom-input type="number" placeholder="Ej: 15"
+              class="w-16 sm:w-20 text-center mx-auto"></app-custom-input>
           </td>
-          <td class="px-4 py-2 align-middle">
+          <td class="px-2 sm:px-4 py-2 align-middle">
             <app-custom-input type="number" [disabled]="true" value="$0,00"
-              class="w-24 text-center bg-gray-100 mx-auto"></app-custom-input>
+              class="w-20 sm:w-24 text-center bg-gray-100 mx-auto"></app-custom-input>
           </td>
-          <td class="px-4 py-2 align-middle">
-            <div class="w-28 mx-auto rounded-md overflow-hidden border-2 border-yellow-400 flex flex-col">
+          <td class="px-2 sm:px-4 py-2 align-middle">
+            <div class="w-24 sm:w-28 mx-auto rounded-md overflow-hidden border-2 border-yellow-400 flex flex-col">
               <app-custom-input type="number" placeholder="$0,00"
                 class="w-full text-center rounded-t-none border-none bg-white"
                 style="border-radius: 0;"></app-custom-input>
-              <span class="block w-full bg-yellow-400 text-xs text-white font-semibold text-center py-1">
-                Precio Promoción
-              </span>
+              <span class="block w-full bg-yellow-400 text-xs text-white font-semibold text-center py-1">Precio
+                Promoción</span>
             </div>
           </td>
           <td class="align-middle" *ngIf="isManager">
             <div class="flex items-center justify-center gap-2">
-              <app-button class="w-10 h-3 flex items-center justify-center rounded-full" color="#00c951"
+              <app-button class="w-8 h-8 flex items-center justify-center rounded-full" color="#00c951"
                 hoverColor="#00a63e" textColor="#fff">
                 <span class="material-symbols-outlined mt-1">check_circle</span>
               </app-button>
-              <app-button class="w-10 h-3 flex items-center justify-center rounded-full" color="#fb2c36"
+              <app-button class="w-8 h-8 flex items-center justify-center rounded-full" color="#fb2c36"
                 hoverColor="#e7000b" textColor="#fff">
                 <span class="material-symbols-outlined mt-1">cancel</span>
               </app-button>
@@ -74,15 +68,13 @@
 
   <hr class="my-4 border-gray-200" />
 
-  <!-- Botón de Eviar Lista-->
-
-  <div class="w-full flex items-center justify-end">
+  <!-- Botón de Enviar Lista-->
+  <div class="w-full flex flex-col sm:flex-row items-center justify-end gap-2 mt-4">
     <app-button class="w-full sm:w-56" color="#00c951" hoverColor="#00a63e">
       <span class="material-symbols-outlined align-middle mr-1">
-        add_circle
+        edit_note
       </span>
-      Añadir Productos
+      Enviar Lista De Promos
     </app-button>
   </div>
-
 </div>

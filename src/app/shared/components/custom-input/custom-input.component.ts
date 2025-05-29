@@ -1,5 +1,9 @@
 import { Component, Input, OnInit, forwardRef } from '@angular/core';
-import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  FormControl,
+  NG_VALUE_ACCESSOR,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -12,15 +16,16 @@ import { CommonModule } from '@angular/common';
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => CustomInputComponent),
-      multi: true
-    }
-  ]
+      multi: true,
+    },
+  ],
 })
 export class CustomInputComponent implements ControlValueAccessor, OnInit {
   @Input() type: string = 'text';
   @Input() placeholder: string = '';
   @Input() error: string | null = null;
   @Input() disabled: boolean = false;
+  @Input() options: { value: any; label: string }[] = [];
 
   value: string = '';
   showPassword: boolean = false;
@@ -28,10 +33,9 @@ export class CustomInputComponent implements ControlValueAccessor, OnInit {
   onChange = (value: any) => {};
   onTouched = () => {};
 
-  constructor() { }
+  constructor() {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   get inputType() {
     return this.type === 'password' && this.showPassword ? 'text' : this.type;
@@ -56,6 +60,12 @@ export class CustomInputComponent implements ControlValueAccessor, OnInit {
 
   handleInput(event: Event) {
     const target = event.target as HTMLInputElement;
+    this.value = target.value;
+    this.onChange(this.value);
+  }
+
+  handleSelect(event: Event) {
+    const target = event.target as HTMLSelectElement;
     this.value = target.value;
     this.onChange(this.value);
   }

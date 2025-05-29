@@ -1,0 +1,24 @@
+/* ...existing code... */
+
+/* Fila de producto aprobado */
+.approved-row input,
+.approved-row select,
+.approved-row .input-approved {
+  background-color: #e6fbe6 !important;
+  border-color: #00c951 !important;
+  color: #1a4d1a !important;
+}
+
+.approved-row .approved-promo {
+  border-color: #00c951 !important;
+}
+
+.status-label.approved {
+  color: #00c951;
+  font-weight: bold;
+  background: #e6fbe6;
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+/* ...existing code... */

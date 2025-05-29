@@ -1,3 +1,19 @@
-<p>
-  promotion-row works!
-</p>
+<div [formGroup]="group" class="promotion-row">
+  <select formControlName="productId">
+    <option *ngFor="let option of productOptions" [ngValue]="option.value">{{ option.label }}</option>
+  </select>
+  <input formControlName="quantity" type="number" placeholder="Cantidad" [disabled]="!group.get('productId')?.value" />
+  <input formControlName="promotionPrice" type="number" placeholder="Precio promoción" [disabled]="!group.get('productId')?.value" />
+  <button type="button" (click)="remove.emit()" [disabled]="disableRemove">Eliminar</button>
+  <!-- Mensajes de error ejemplo -->
+  <div *ngIf="group.get('quantity')?.invalid && group.get('quantity')?.touched">
+    <small *ngIf="group.get('quantity')?.errors?.['required']">Cantidad requerida</small>
+    <small *ngIf="group.get('quantity')?.errors?.['min']">Cantidad mínima: {{ group.get('minPromotionQuantity')?.value }}</small>
+    <small *ngIf="group.get('quantity')?.errors?.['max']">Cantidad máxima: {{ group.get('maxPromotionQuantity')?.value }}</small>
+  </div>
+  <div *ngIf="group.get('promotionPrice')?.invalid && group.get('promotionPrice')?.touched">
+    <small *ngIf="group.get('promotionPrice')?.errors?.['required']">Precio requerido</small>
+    <small *ngIf="group.get('promotionPrice')?.errors?.['min']">Precio mínimo: {{ group.get('minPromotionPrice')?.value }}</small>
+    <small *ngIf="group.get('promotionPrice')?.errors?.['max']">Precio máximo: {{ group.get('listPrice')?.value - 0.01 }}</small>
+  </div>
+</div>

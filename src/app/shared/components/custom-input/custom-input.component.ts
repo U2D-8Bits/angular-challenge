@@ -58,10 +58,14 @@ export class CustomInputComponent implements ControlValueAccessor, OnInit {
   setDisabledState?(isDisabled: boolean): void {
     this.disabled = isDisabled;
   }
-
+  
   handleInput(event: Event) {
     const target = event.target as HTMLInputElement;
-    this.value = target.value;
+    let value: any = target.value;
+    if (this.type === 'number') {
+      value = value === '' ? null : Number(value);
+    }
+    this.value = value;
     this.onChange(this.value);
   }
 }

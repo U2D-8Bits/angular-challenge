@@ -16,16 +16,10 @@ import { PromotionsService } from '../../../core/services/promotions.service';
 import { ProductModel } from '../../models';
 
 import { ButtonComponent } from '../button/button.component';
-import { PromotionRowComponent } from '../promotion-row/promotion-row.component';
 
 @Component({
   standalone: true,
-  imports: [
-    ButtonComponent,
-    PromotionRowComponent,
-    CommonModule,
-    ReactiveFormsModule,
-  ],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule],
   selector: 'app-promotionCard',
   templateUrl: './promotionCard.component.html',
   styleUrls: ['./promotionCard.component.css'],
@@ -52,6 +46,10 @@ export class PromotionCardComponent implements OnInit {
     if (!this.isManager) {
       this.loadProducts();
     }
+  }
+
+  get promotionsFormArray(): FormArray<FormGroup> {
+    return this.form.get('promotions') as FormArray<FormGroup>;
   }
 
   private setRole() {
@@ -134,5 +132,9 @@ export class PromotionCardComponent implements OnInit {
 
   removePromotion(index: number) {
     this.promotions.removeAt(index);
+  }
+
+  get disableRemove(): boolean {
+    return this.promotions.length <= 1;
   }
 }

@@ -1,12 +1,21 @@
-/* ...existing code... */
+app-custom-input:not([disabled]):not(.input-approved) input,
+app-custom-input:not([disabled]):not(.input-approved) {
+  background: #fff !important;
+  border-color: #dddfe2 !important;
+  color: #222 !important;
+}
 
-/* Fila de producto aprobado */
-.approved-row input,
-.approved-row select,
-.approved-row .input-approved {
-  background-color: #e6fbe6 !important;
+.input-approved input,
+.input-approved {
+  background: #f5f6f7 !important;
   border-color: #00c951 !important;
   color: #1a4d1a !important;
+}
+
+.input-readonly input,
+.input-readonly {
+  background: #f5f6f7 !important;
+  color: #888 !important;
 }
 
 .approved-row .approved-promo {
@@ -20,5 +29,3 @@
   border-radius: 4px;
   padding: 2px 8px;
 }
-
-/* ...existing code... */

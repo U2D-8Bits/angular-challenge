@@ -23,7 +23,7 @@
           <th class="px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold whitespace-nowrap">Cantidad en unidades</th>
           <th class="px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold whitespace-nowrap">Precio lista</th>
           <th class="px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold whitespace-nowrap">Precio promoción</th>
-          <th class="px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold whitespace-nowrap" *ngIf="isManager">Acciones
+          <th class="px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold whitespace-nowrap">Acciones
           </th>
         </tr>
       </thead>
@@ -52,6 +52,16 @@
                 Promoción</span>
             </div>
           </td>
+
+          <td class="align-middle" *ngIf="!isManager">
+            <div class="flex items-center justify-center gap-2">
+              <app-button class="w-8 h-8 flex items-center justify-center rounded-full" color="#fb2c36"
+                hoverColor="#e7000b" textColor="#fff">
+                <span class="material-symbols-outlined mt-1">delete</span>
+              </app-button>
+            </div>
+          </td>
+
           <td class="align-middle" *ngIf="isManager">
             <div class="flex items-center justify-center gap-2">
               <app-button class="w-8 h-8 flex items-center justify-center rounded-full" color="#00c951"
@@ -64,6 +74,7 @@
               </app-button>
             </div>
           </td>
+
         </tr>
       </tbody>
     </table>

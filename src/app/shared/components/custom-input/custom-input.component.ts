@@ -67,6 +67,13 @@ export class CustomInputComponent implements ControlValueAccessor, OnInit {
   handleSelect(event: Event) {
     const target = event.target as HTMLSelectElement;
     this.value = target.value;
-    this.onChange(this.value);
+    if (this.type === 'select' && this.value !== '') {
+      const numericValue = !isNaN(Number(this.value))
+        ? Number(this.value)
+        : this.value;
+      this.onChange(numericValue);
+    } else {
+      this.onChange(this.value);
+    }
   }
 }

@@ -45,7 +45,81 @@ export class PromotionCardComponent implements OnInit {
     this.setRole();
     if (!this.isManager) {
       this.loadProducts();
+      // Suscribirse a cambios en el FormArray para manejar cambios dinámicos
+      this.promotionsFormArray.valueChanges.subscribe(() => {
+        this.handleFormArrayChanges();
+      });
     }
+  }
+
+  private handleFormArrayChanges() {
+    this.promotionsFormArray.controls.forEach((group, idx) => {
+      const productId = group.get('productId')?.value;
+      if (productId) {
+        const product = this.products.find((p) => p.id === productId);
+        if (product) {
+          // Setear valores dependientes
+          const patch: any = {
+            listPrice: product.listPrice,
+            minPromotionQuantity: product.minPromotionQuantity,
+            maxPromotionQuantity: product.maxPromotionQuantity,
+            minPromotionPrice: product.minPromotionPrice,
+            productName: product.name,
+          };
+          // Si el valor actual de quantity es nulo o está fuera de rango, setear el mínimo
+          const currentQuantity = group.get('quantity')?.value;
+          if (
+            currentQuantity === null ||
+            currentQuantity < product.minPromotionQuantity ||
+            currentQuantity > product.maxPromotionQuantity
+          ) {
+            patch.quantity = product.minPromotionQuantity;
+          }
+          // Si el valor actual de promotionPrice es nulo o está fuera de rango, setear el mínimo
+          const currentPromoPrice = group.get('promotionPrice')?.value;
+          if (
+            currentPromoPrice === null ||
+            currentPromoPrice < product.minPromotionPrice ||
+            currentPromoPrice >= product.listPrice
+          ) {
+            patch.promotionPrice = product.minPromotionPrice;
+          }
+          group.patchValue(patch, { emitEvent: false });
+          // Validaciones dinámicas para cantidad
+          group.get('quantity')?.setValidators([
+            Validators.required,
+            Validators.min(product.minPromotionQuantity),
+            Validators.max(product.maxPromotionQuantity),
+            Validators.pattern('^[0-9]+$'),
+          ]);
+          group.get('quantity')?.updateValueAndValidity({ emitEvent: false });
+          // Validaciones dinámicas para precio promoción
+          group.get('promotionPrice')?.setValidators([
+            Validators.required,
+            Validators.min(product.minPromotionPrice),
+            Validators.max(product.listPrice - 0.01),
+          ]);
+          group.get('promotionPrice')?.updateValueAndValidity({ emitEvent: false });
+        }
+      } else {
+        group.patchValue(
+          {
+            listPrice: null,
+            minPromotionQuantity: null,
+            maxPromotionQuantity: null,
+            minPromotionPrice: null,
+            productName: '',
+            quantity: null,
+            promotionPrice: null,
+          },
+          { emitEvent: false }
+        );
+        group.get('quantity')?.clearValidators();
+        group.get('quantity')?.updateValueAndValidity({ emitEvent: false });
+        group.get('promotionPrice')?.clearValidators();
+        group.get('promotionPrice')?.updateValueAndValidity({ emitEvent: false });
+      }
+    });
   }
 
   get promotionsFormArray(): FormArray<FormGroup> {
@@ -78,10 +152,9 @@ export class PromotionCardComponent implements OnInit {
   }
 
   getProductOptions(index: number): { value: number | null; label: string }[] {
+    // Evitar productos repetidos
     const selectedIds = this.promotions.controls
-      .map((ctrl, i) =>
-        i !== index ? Number(ctrl.get('productId')?.value) : null
-      )
+      .map((ctrl, i) => (i !== index ? Number(ctrl.get('productId')?.value) : null))
       .filter((id) => id !== null);
     return [
       { value: null, label: 'Selecciona un producto' },
@@ -109,6 +182,10 @@ export class PromotionCardComponent implements OnInit {
       return;
     }
     const group = this.createPromotionGroup();
+    // Suscribirse a cambios en el producto seleccionado para actualizar valores y validaciones
+    group.get('productId')?.valueChanges.subscribe(() => {
+      this.handleFormArrayChanges();
+    });
     this.promotions.push(group);
     this.cdr.detectChanges();
   }
@@ -132,6 +209,7 @@ export class PromotionCardComponent implements OnInit {
 
   removePromotion(index: number) {
     this.promotions.removeAt(index);
+    this.cdr.detectChanges();
   }
 
   get disableRemove(): boolean {

@@ -7,4 +7,5 @@ export interface PromotionItemModel {
   minPromotionQuantity: number;
   maxPromotionQuantity: number;
   minPromotionPrice: number;
+  managerStatus: 'pendiente' | 'aprobada' | 'rechazada';
 }

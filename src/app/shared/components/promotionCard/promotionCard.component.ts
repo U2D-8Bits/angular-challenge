@@ -14,8 +14,8 @@ import { ProductsService } from '../../../core/services/products.service';
 import { PromotionsService } from '../../../core/services/promotions.service';
 
 import { ProductModel } from '../../models';
-
 import { ButtonComponent } from '../button/button.component';
+import Swal from 'sweetalert2';
 
 @Component({
   standalone: true,
@@ -28,6 +28,7 @@ export class PromotionCardComponent implements OnInit {
   products: ProductModel[] = [];
   isManager = false;
   form: FormGroup;
+  estadoLista: 'EDICION' | 'APROBACION' = 'EDICION';
 
   constructor(
     private authService: AuthService,
@@ -45,10 +46,14 @@ export class PromotionCardComponent implements OnInit {
     this.setRole();
     if (!this.isManager) {
       this.loadProducts();
-      // Suscribirse a cambios en el FormArray para manejar cambios dinámicos
       this.promotionsFormArray.valueChanges.subscribe(() => {
         this.handleFormArrayChanges();
       });
+      // Al iniciar, verificar si la lista ya está en APROBACION
+      const status = this.promotionsService.getPromotionStatus();
+      if (status === 'APROBACION') {
+        this.estadoLista = 'APROBACION';
+      }
     }
   }
 
@@ -58,7 +63,6 @@ export class PromotionCardComponent implements OnInit {
       if (productId) {
         const product = this.products.find((p) => p.id === productId);
         if (product) {
-          // Setear valores dependientes
           const patch: any = {
             listPrice: product.listPrice,
             minPromotionQuantity: product.minPromotionQuantity,
@@ -66,7 +70,6 @@ export class PromotionCardComponent implements OnInit {
             minPromotionPrice: product.minPromotionPrice,
             productName: product.name,
           };
-          // Si el valor actual de quantity es nulo o está fuera de rango, setear el mínimo
           const currentQuantity = group.get('quantity')?.value;
           if (
             currentQuantity === null ||
@@ -75,7 +78,6 @@ export class PromotionCardComponent implements OnInit {
           ) {
             patch.quantity = product.minPromotionQuantity;
           }
-          // Si el valor actual de promotionPrice es nulo o está fuera de rango, setear el mínimo
           const currentPromoPrice = group.get('promotionPrice')?.value;
           if (
             currentPromoPrice === null ||
@@ -85,7 +87,6 @@ export class PromotionCardComponent implements OnInit {
             patch.promotionPrice = product.minPromotionPrice;
           }
           group.patchValue(patch, { emitEvent: false });
-          // Validaciones dinámicas para cantidad
           group.get('quantity')?.setValidators([
             Validators.required,
             Validators.min(product.minPromotionQuantity),
@@ -93,7 +94,6 @@ export class PromotionCardComponent implements OnInit {
             Validators.pattern('^[0-9]+$'),
           ]);
           group.get('quantity')?.updateValueAndValidity({ emitEvent: false });
-          // Validaciones dinámicas para precio promoción
           group.get('promotionPrice')?.setValidators([
             Validators.required,
             Validators.min(product.minPromotionPrice),
@@ -152,7 +152,6 @@ export class PromotionCardComponent implements OnInit {
   }
 
   getProductOptions(index: number): { value: number | null; label: string }[] {
-    // Evitar productos repetidos
     const selectedIds = this.promotions.controls
       .map((ctrl, i) => (i !== index ? Number(ctrl.get('productId')?.value) : null))
       .filter((id) => id !== null);
@@ -182,7 +181,6 @@ export class PromotionCardComponent implements OnInit {
       return;
     }
     const group = this.createPromotionGroup();
-    // Suscribirse a cambios en el producto seleccionado para actualizar valores y validaciones
     group.get('productId')?.valueChanges.subscribe(() => {
       this.handleFormArrayChanges();
     });
@@ -205,6 +203,14 @@ export class PromotionCardComponent implements OnInit {
     this.promotionsService.savePromotionList(list);
     this.promotionsService.setPromotionStatus('APROBACION');
     this.form.disable();
+    this.estadoLista = 'APROBACION';
+    Swal.fire({
+      icon: 'success',
+      title: '¡Lista enviada!',
+      text: 'Tu lista de promociones fue enviada para aprobación de gerencia.',
+      confirmButtonColor: '#00c951',
+      confirmButtonText: 'OK'
+    });
   }
 
   removePromotion(index: number) {

@@ -229,9 +229,14 @@ export class PromotionCardComponent implements OnInit {
     const idsSeleccionados = this.promotionsFormArray.controls
       .map((ctrl, i) => i !== index ? ctrl.get('productId')?.value : null)
       .filter(id => id !== null);
-    return this.products
-      .filter(product => !idsSeleccionados.includes(product.id) || product.id === currentId)
-      .map(product => ({ value: product.id, label: product.name }));
+    // Agregar opción de placeholder como opción real
+    const options = [
+      { value: null, label: 'Seleccionar un producto' },
+      ...this.products
+        .filter(product => !idsSeleccionados.includes(product.id) || product.id === currentId)
+        .map(product => ({ value: product.id, label: product.name }))
+    ];
+    return options;
   }
 
   private createPromotionGroup(promo?: any): FormGroup {

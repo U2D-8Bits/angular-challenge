@@ -5,13 +5,14 @@ import {
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   standalone: true,
+  imports: [CommonModule, FormsModule],
   selector: 'app-custom-input',
   templateUrl: './custom-input.component.html',
   styleUrls: ['./custom-input.component.css'],
-  imports: [CommonModule],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -62,18 +63,5 @@ export class CustomInputComponent implements ControlValueAccessor, OnInit {
     const target = event.target as HTMLInputElement;
     this.value = target.value;
     this.onChange(this.value);
-  }
-
-  handleSelect(event: Event) {
-    const target = event.target as HTMLSelectElement;
-    this.value = target.value;
-    if (this.type === 'select' && this.value !== '') {
-      const numericValue = !isNaN(Number(this.value))
-        ? Number(this.value)
-        : this.value;
-      this.onChange(numericValue);
-    } else {
-      this.onChange(this.value);
-    }
   }
 }

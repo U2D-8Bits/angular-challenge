@@ -1,9 +1,9 @@
 <div class="relative">
-  
+
   <ng-container *ngIf="type === 'select'; else inputField">
-    <select [value]="value" (change)="handleSelect($event)" (blur)="onTouched()" [disabled]="disabled"
+    <select [ngModel]="value" (ngModelChange)="onChange($event)" (blur)="onTouched()" [disabled]="disabled"
       class="w-full h-11 px-3 border border-[#dddfe2] rounded-md text-base bg-[#f5f6f7] focus:outline-none focus:border-[#1877f2] focus:bg-white transition-colors">
-      <option *ngFor="let option of options" [value]="option.value">{{ option.label }}</option>
+      <option *ngFor="let option of options" [ngValue]="option.value">{{ option.label }}</option>
     </select>
   </ng-container>
 

@@ -1,7 +1,7 @@
 <button
   [type]="type"
   [disabled]="disabled || loading"
-  class="w-full h-11 rounded-md text-base font-semibold transition-colors cursor-pointer"
+  class="w-full h-11 rounded-md text-base font-semibold transition-colors cursor-pointer px-4 flex items-center justify-center gap-2"
   [ngStyle]="{
     'background-color': disabled || loading ? color : color,
     'color': textColor,

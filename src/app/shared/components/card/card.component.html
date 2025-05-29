@@ -1,14 +1,12 @@
 <div *ngIf="userData as user" class="bg-white rounded-lg shadow-md p-6">
-  
-  <div class="flex justify-between items-start mb-4">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
     <div>
       <h2 class="text-2xl font-bold text-gray-800">{{ user.name.first }} {{ user.name.last }}</h2>
       <span class="text-sm text-gray-500">ID: {{ user.id }}</span>
     </div>
   </div>
 
-  <div class="grid grid-cols-3 gap-6 items-start">
-    
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
     <div class="space-y-2">
       <div>
         <span class="font-semibold text-gray-700">Email:</span>
@@ -28,7 +26,6 @@
       </div>
     </div>
 
-    
     <div class="space-y-2">
       <div>
         <span class="font-semibold text-gray-700">Ciudad:</span>
@@ -56,9 +53,8 @@
       </div>
     </div>
 
-    
     <div class="flex justify-center items-start">
-      <img [src]="user.picture.large" alt="Foto de usuario" class="w-48 h-48 object-cover border-4 border-gray-200 shadow" />
+      <img [src]="user.picture.large" alt="Foto de usuario" class="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-cover border-4 border-gray-200 shadow" />
     </div>
   </div>
 </div>

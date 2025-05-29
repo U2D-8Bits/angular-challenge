@@ -40,7 +40,7 @@
             <!-- Input cantidad -->
             <td class="px-2 sm:px-4 py-2 align-middle">
               <input formControlName="quantity" type="number" placeholder="Cantidad"
-                class="w-16 sm:w-20 text-center mx-auto h-11 px-3 border border-[#dddfe2] rounded-md text-base bg-[#f5f6f7] focus:outline-none focus:border-[#1877f2] focus:bg-white transition-colors" />
+                class="w-full text-center h-11 px-3 border border-[#dddfe2] rounded-md text-base bg-[#f5f6f7] focus:outline-none focus:border-[#1877f2] focus:bg-white transition-colors" />
               <div class="text-xs text-red-600 mt-1"
                 *ngIf="group.get('quantity')?.invalid && group.get('quantity')?.touched">
                 <small *ngIf="group.get('quantity')?.errors?.['required']">Cantidad requerida</small>
@@ -53,11 +53,11 @@
             <!-- Input precio lista (solo lectura) -->
             <td class="px-2 sm:px-4 py-2 align-middle">
               <input formControlName="listPrice" type="number" placeholder="$0,00" readonly
-                class="w-20 sm:w-24 text-center bg-gray-100 mx-auto h-11 px-3 border border-[#dddfe2] rounded-md text-base" />
+                class="w-full text-center bg-gray-100 h-11 px-3 border border-[#dddfe2] rounded-md text-base" />
             </td>
             <!-- Input precio promoción con diseño destacado -->
             <td class="px-2 sm:px-4 py-2 align-middle">
-              <div class="w-24 sm:w-28 mx-auto rounded-md overflow-hidden border-2 border-yellow-400 flex flex-col">
+              <div class="w-full rounded-md overflow-hidden border-2 border-yellow-400 flex flex-col">
                 <input formControlName="promotionPrice" type="number" placeholder="$0,00"
                   class="w-full text-center rounded-t-none border-none bg-white h-11 px-3 text-base"
                   style="border-radius: 0;" />

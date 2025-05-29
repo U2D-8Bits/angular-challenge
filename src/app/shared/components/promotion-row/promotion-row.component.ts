@@ -8,7 +8,8 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, ReactiveFormsModule],
   selector: 'app-promotion-row',
   templateUrl: './promotion-row.component.html',
-  styleUrls: ['./promotion-row.component.css']
+  styleUrls: ['./promotion-row.component.css'],
+host: { class: 'contents' }
 })
 export class PromotionRowComponent implements OnInit {
 

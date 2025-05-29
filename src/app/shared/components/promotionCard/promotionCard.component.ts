@@ -41,6 +41,7 @@ export class PromotionCardComponent implements OnInit {
     private authService: AuthService,
     private fb: FormBuilder,
     private productService: ProductsService,
+    private promotionsService: PromotionsService,
     private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
@@ -83,11 +84,25 @@ export class PromotionCardComponent implements OnInit {
     });
   }
 
+  getProductOptions(index: number): { value: number | null; label: string }[] {
+    const selectedIds = this.promotions.controls
+      .map((ctrl, i) =>
+        i !== index ? Number(ctrl.get('productId')?.value) : null
+      )
+      .filter((id) => id !== null);
+    return [
+      { value: null, label: 'Selecciona un producto' },
+      ...this.products
+        .filter((p) => !selectedIds.includes(p.id))
+        .map((p) => ({ value: p.id, label: p.name })),
+    ];
+  }
+
   private createPromotionGroupEmpty(): FormGroup {
     const group = this.fb.group({
-      productId: ['', Validators.required],
+      productId: [null, Validators.required],
       productName: [''],
-      listPrice: [{ value: null, disabled: true }],
+      listPrice: [null],
       quantity: [null, [Validators.required]],
       promotionPrice: [null, [Validators.required]],
       minPromotionQuantity: [null],
@@ -100,39 +115,51 @@ export class PromotionCardComponent implements OnInit {
 
   private handleProductSelection(group: FormGroup) {
     group.get('productId')?.valueChanges.subscribe((productId) => {
-      const selected = this.products.find((p) => p.id === +productId);
+      console.log('Seleccionado:', productId);
+      const id = productId !== null ? Number(productId) : null;
+      const selected = this.products.find((p) => p.id === id);
       if (selected) {
-        group.patchValue({
-          productName: selected.name,
-          listPrice: selected.listPrice,
-          minPromotionQuantity: selected.minPromotionQuantity,
-          maxPromotionQuantity: selected.maxPromotionQuantity,
-          minPromotionPrice: selected.minPromotionPrice,
-          quantity: null,
-          promotionPrice: null,
-        });
-        group.get('quantity')?.setValidators([
-          Validators.required,
-          Validators.min(selected.minPromotionQuantity),
-          Validators.max(selected.maxPromotionQuantity),
-        ]);
+        group.patchValue(
+          {
+            productName: selected.name,
+            listPrice: selected.listPrice,
+            minPromotionQuantity: selected.minPromotionQuantity,
+            maxPromotionQuantity: selected.maxPromotionQuantity,
+            minPromotionPrice: selected.minPromotionPrice,
+            quantity: null,
+            promotionPrice: null,
+          },
+          { emitEvent: false }
+        ); // evita bucles infinitos
+        group
+          .get('quantity')
+          ?.setValidators([
+            Validators.required,
+            Validators.min(selected.minPromotionQuantity),
+            Validators.max(selected.maxPromotionQuantity),
+          ]);
         group.get('quantity')?.updateValueAndValidity();
-        group.get('promotionPrice')?.setValidators([
-          Validators.required,
-          Validators.min(selected.minPromotionPrice),
-          Validators.max(selected.listPrice - 0.01),
-        ]);
+        group
+          .get('promotionPrice')
+          ?.setValidators([
+            Validators.required,
+            Validators.min(selected.minPromotionPrice),
+            Validators.max(selected.listPrice - 0.01),
+          ]);
         group.get('promotionPrice')?.updateValueAndValidity();
       } else {
-        group.patchValue({
-          productName: '',
-          listPrice: null,
-          minPromotionQuantity: null,
-          maxPromotionQuantity: null,
-          minPromotionPrice: null,
-          quantity: null,
-          promotionPrice: null,
-        });
+        group.patchValue(
+          {
+            productName: '',
+            listPrice: null,
+            minPromotionQuantity: null,
+            maxPromotionQuantity: null,
+            minPromotionPrice: null,
+            quantity: null,
+            promotionPrice: null,
+          },
+          { emitEvent: false }
+        );
         group.get('quantity')?.clearValidators();
         group.get('quantity')?.updateValueAndValidity();
         group.get('promotionPrice')?.clearValidators();
@@ -144,38 +171,57 @@ export class PromotionCardComponent implements OnInit {
   addPromotionEmpty() {
     this.promotions.push(this.createPromotionGroupEmpty());
     this.cdr.detectChanges();
+    console.log('Promociones actuales:', this.promotions.getRawValue());
   }
 
   private createPromotionGroup(product?: ProductModel): FormGroup {
     return this.fb.group({
-      productId: [product?.id || '', Validators.required],
+      productId: [product?.id ?? null, Validators.required],
       productName: [product?.name || ''],
-      listPrice: [{ value: product?.listPrice || 0, disabled: true }],
+      listPrice: [product?.listPrice ?? null],
       quantity: [
-        product?.minPromotionQuantity || '',
+        product?.minPromotionQuantity ?? null,
         [
           Validators.required,
-          Validators.min(product?.minPromotionQuantity || 1),
-          Validators.max(product?.maxPromotionQuantity || 999),
+          Validators.min(product?.minPromotionQuantity ?? 1),
+          Validators.max(product?.maxPromotionQuantity ?? 999),
         ],
       ],
       promotionPrice: [
-        product?.minPromotionPrice || '',
+        product?.minPromotionPrice ?? null,
         [
           Validators.required,
-          Validators.min(product?.minPromotionPrice || 0.01),
+          Validators.min(product?.minPromotionPrice ?? 0.01),
           Validators.max(product?.listPrice ? product.listPrice - 0.01 : 99999),
         ],
       ],
-      minPromotionQuantity: [product?.minPromotionQuantity || 1],
-      maxPromotionQuantity: [product?.maxPromotionQuantity || 999],
-      minPromotionPrice: [product?.minPromotionPrice || 0.01],
+      minPromotionQuantity: [product?.minPromotionQuantity ?? null],
+      maxPromotionQuantity: [product?.maxPromotionQuantity ?? null],
+      minPromotionPrice: [product?.minPromotionPrice ?? null],
     });
   }
 
   addPromotion(product?: ProductModel) {
     this.promotions.push(this.createPromotionGroup(product));
     this.cdr.detectChanges();
+    console.log('Promociones actuales:', this.promotions.getRawValue());
+  }
+
+  submitPromotions() {
+    if (this.form.invalid || this.promotions.length === 0) return;
+    const list = this.promotions.getRawValue().map((promo: any) => ({
+      productId: +promo.productId,
+      productName: promo.productName,
+      listPrice: promo.listPrice,
+      quantity: promo.quantity,
+      promotionPrice: promo.promotionPrice,
+      minPromotionQuantity: promo.minPromotionQuantity,
+      maxPromotionQuantity: promo.maxPromotionQuantity,
+      minPromotionPrice: promo.minPromotionPrice,
+    }));
+    this.promotionsService.savePromotionList(list);
+    this.promotionsService.setPromotionStatus('APROBACION');
+    this.form.disable();
   }
 
   removePromotion(index: number) {

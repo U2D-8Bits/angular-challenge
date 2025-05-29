@@ -39,8 +39,10 @@
             class="border-b last:border-b-0 text-center align-middle">
 
             <td class="px-2 sm:px-4 py-2 align-middle">
-              <app-custom-input type="select" formControlName="productId" [options]="productOptions"
-                class="w-full mx-auto"></app-custom-input>
+              <select formControlName="productId"
+                class="w-full h-11 px-3 border border-[#dddfe2] rounded-md text-base bg-[#f5f6f7] focus:outline-none focus:border-[#1877f2] focus:bg-white transition-colors">
+                <option *ngFor="let option of getProductOptions(i)" [ngValue]="option.value">{{ option.label }}</option>
+              </select>
             </td>
 
             <td class="px-2 sm:px-4 py-2 align-middle">
@@ -93,7 +95,7 @@
 
     <!-- Botón de Enviar Lista-->
     <div class="w-full flex flex-col sm:flex-row items-center justify-end gap-2 mt-4">
-      <app-button class="w-full sm:w-56" color="#00c951" hoverColor="#00a63e"
+      <app-button (click)="submitPromotions()" class="w-full sm:w-56" color="#00c951" hoverColor="#00a63e"
         [disabled]="form.invalid || promotions.length === 0">
         <span class="material-symbols-outlined align-middle mr-1">
           edit_note
